@@ -1,14 +1,27 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework import generics, mixins, permissions
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from status.api.serializers import StatusSerializer
 from .models import Status
 
 
-class StatusAPIView(generics.ListCreateAPIView):
+class StatusAPIView(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.ListAPIView
+):
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    # authentication_classes = [TokenAuthentication]                  # default = SessionAuthentication
     serializer_class = StatusSerializer
+    queryset = Status.object.all()
+
+    # lookup_field = 'id'
 
     def get_queryset(self):
         qs = Status.object.all()
@@ -16,6 +29,46 @@ class StatusAPIView(generics.ListCreateAPIView):
         if query:
             qs = qs.filter(content__icontains=query)
         return qs
+
+    def get_object(self):
+        request = self.request
+        passed_id = request.GET.get('id', None)
+        queryset = self.get_queryset()
+        obj = None
+        if passed_id is not None:
+            obj = get_object_or_404(queryset, id=passed_id)
+            self.check_object_permissions(request, obj)
+        return obj
+
+    def get(self, request, *args, **kwargs):
+        print('user', request.user)
+        passed_id = request.GET.get('id', None)
+        if passed_id is not None:
+            return self.retrieve(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+# class StatusAPIView(generics.ListCreateAPIView):
+#     serializer_class = StatusSerializer
+#
+#     def get_queryset(self):
+#         qs = Status.object.all()
+#         query = self.request.GET.get('q', None)
+#         if query:
+#             qs = qs.filter(content__icontains=query)
+#         return qs
 
 
 class StatusDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 
 def upload_status_image(instance, filename):
-    return f'updates/{instance.user}/{filename}'
+    return f'status-media/{instance.user}/{filename}'
 
 
 class StatusQuerySet(models.QuerySet):
