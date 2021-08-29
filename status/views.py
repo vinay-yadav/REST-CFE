@@ -6,6 +6,7 @@ from rest_framework import generics, mixins, permissions
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from status.api.serializers import StatusSerializer
+from accounts.permissions import IsOwnerOrReadOnly
 from .models import Status
 
 
@@ -16,19 +17,23 @@ class StatusAPIView(
     mixins.DestroyModelMixin,
     generics.ListAPIView
 ):
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    search_fields = ['user__username', 'content']
+    ordering_fields = ['user__username', 'timestamp']
+
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     # authentication_classes = [TokenAuthentication]                  # default = SessionAuthentication
     serializer_class = StatusSerializer
     queryset = Status.object.all()
 
     # lookup_field = 'id'
 
-    def get_queryset(self):
-        qs = Status.object.all()
-        query = self.request.GET.get('q', None)
-        if query:
-            qs = qs.filter(content__icontains=query)
-        return qs
+    # commented as 'search_fields' is doing the same
+    # def get_queryset(self):
+    #     qs = Status.object.all()
+    #     query = self.request.GET.get('q', None)
+    #     if query:
+    #         qs = qs.filter(content__icontains=query)
+    #     return qs.order_by('-timestamp')
 
     def get_object(self):
         request = self.request
@@ -41,7 +46,6 @@ class StatusAPIView(
         return obj
 
     def get(self, request, *args, **kwargs):
-        print('user', request.user)
         passed_id = request.GET.get('id', None)
         if passed_id is not None:
             return self.retrieve(request, *args, **kwargs)
@@ -74,6 +78,7 @@ class StatusAPIView(
 class StatusDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Status.object.all()
     serializer_class = StatusSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     lookup_field = 'id'
 
 # class StatusListSearchAPIView(APIView):

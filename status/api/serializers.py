@@ -1,12 +1,16 @@
 from rest_framework import serializers
 from status.models import Status
+from accounts.serializers import UserSerializer
 
 
 class StatusSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Status
         fields = '__all__'
         read_only_fields = ['user']
+        # depth = 1
 
     def validate_content(self, value):
         if len(value) > 249:
