@@ -5,10 +5,10 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
-    path('', views.AuthAPIView.as_view()),
+    path('', views.AuthAPIView.as_view(), name='login'),
     path('<str:username>/', views.UserDetailAPIView.as_view()),
     path('<str:username>/status/', views.UserStatusAPIView.as_view()),
-    path('register/', views.RegisterAPIView.as_view()),
+    path('register/', views.RegisterAPIView.as_view(), name='register'),
     path('jwt/', obtain_jwt_token),
     path('jwt/refresh/', refresh_jwt_token),
 ]
