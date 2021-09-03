@@ -13,7 +13,9 @@ SECRET_KEY = 'django-insecure-e&_rlm3mjb-n@seg@zadz_mxxr(h-6#lc4_z@pbeadkw9a2wnh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost'
+]
 
 
 # Application definition
@@ -39,6 +41,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+
+    INTERNAL_IPS = [
+        '127.0.0.1',
+        'localhost'
+    ]
 
 ROOT_URLCONF = 'rest_cfe.urls'
 
